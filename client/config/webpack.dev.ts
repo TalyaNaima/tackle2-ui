@@ -1,6 +1,6 @@
 import path from "path";
 import { mergeWithRules } from "webpack-merge";
-import type { Configuration as WebpackConfiguration } from "webpack";
+import { type Configuration as WebpackConfiguration } from "webpack";
 import type { Configuration as DevServerConfiguration } from "webpack-dev-server";
 import CopyPlugin from "copy-webpack-plugin";
 import HtmlWebpackPlugin from "html-webpack-plugin";
@@ -86,10 +86,17 @@ const config: Configuration = mergeWithRules({
         mode: "readonly",
       },
     }),
+    // new DefinePlugin({
+    //   'process.env.VERSION': JSON.stringify(process.env.VERSION)||"2.0.0-dev"
+    //     }),
     new CopyPlugin({
       patterns: [
         {
           from: pathTo("../public/mockServiceWorker.js"),
+        },
+        {
+          from: path.resolve(__dirname, "../public/build-version.json"),
+          to: path.resolve(__dirname, "dist/public/build-version.json"),
         },
       ],
     }),

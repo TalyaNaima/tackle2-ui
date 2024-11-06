@@ -42,6 +42,9 @@ export type KonveyorEnvType = {
 
   /** Location of branding files (relative paths computed from the project source root) */
   BRANDING?: string;
+
+  /**  */
+  VERSION_CHECKER?: "true" | "false";
 };
 
 /**
@@ -73,6 +76,7 @@ export const buildKonveyorEnv = ({
   RWX_SUPPORTED = "true",
   TACKLE_HUB_URL,
   BRANDING,
+  VERSION_CHECKER = "true",
 }: Partial<KonveyorEnvType> = {}): KonveyorEnvType => ({
   NODE_ENV,
   PORT,
@@ -88,6 +92,7 @@ export const buildKonveyorEnv = ({
   RWX_SUPPORTED,
   TACKLE_HUB_URL,
   BRANDING,
+  VERSION_CHECKER,
 });
 
 /**

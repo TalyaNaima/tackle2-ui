@@ -1,19 +1,40 @@
 import path from "path";
-import { Configuration } from "webpack";
+import { Configuration, DefinePlugin } from "webpack";
 import CopyPlugin from "copy-webpack-plugin";
 import Dotenv from "dotenv-webpack";
 import { TsconfigPathsPlugin } from "tsconfig-paths-webpack-plugin";
 import MonacoWebpackPlugin from "monaco-editor-webpack-plugin";
+import fs from "fs";
+import { version } from "../package.json";
 
-import { brandingAssetPath } from "@konveyor-ui/common";
+import { brandingAssetPath, KONVEYOR_ENV } from "@konveyor-ui/common";
 import { LANGUAGES_BY_FILE_EXTENSION } from "./monacoConstants";
+import { execSync } from "child_process";
 
 const pathTo = (relativePath: string) => path.resolve(__dirname, relativePath);
 const nodeModules = (pkg: string) => pathTo(`../../node_modules/${pkg}`);
 const brandingPath = brandingAssetPath();
 const manifestPath = path.resolve(brandingPath, "manifest.json");
+const buildVersionFilePath = path.resolve(
+  __dirname,
+  "../public/build-version.json"
+);
 
 const BG_IMAGES_DIRNAME = "images";
+
+const getGitCommitHash = (): string => {
+  try {
+    // Check if the .git folder exists and run the git command to get the commit hash
+    const commitHash = execSync("git rev-parse --short HEAD").toString().trim();
+    return commitHash;
+  } catch (error) {
+    // If git command fails, fallback to a default value (could be empty or something else)
+    console.warn("Git commit hash not available. Using fallback value.");
+    return "unknown";
+  }
+};
+
+const getCurrentTimestamp = (): string => new Date().toISOString();
 
 const config: Configuration = {
   entry: {
@@ -151,9 +172,48 @@ const config: Configuration = {
   },
 
   plugins: [
+    // {
+    //   apply: (compiler: any) => {
+    //     compiler.hooks.done.tap('GenerateBuildVersionFile', () => {
+    //       const versionData = {
+    //         version: version || '1.0.0',
+    //         buildTime: new Date().toISOString(),
+    //       };
+
+    //       // Write `build-version.json` in the public directory
+    //       fs.writeFileSync(buildVersionFilePath, JSON.stringify(versionData, null, 2));
+    //       console.log('Generated build-version.json at', buildVersionFilePath);
+    //     });
+    //   },
+    // },
+    {
+      apply: (compiler: any) => {
+        compiler.hooks.done.tap("GenerateBuildVersionFile", () => {
+          const commitHash = getGitCommitHash(); // Get commit hash from git or fallback
+          const buildTime = getCurrentTimestamp();
+
+          const versionData = {
+            version: version || "1.0.0",
+            commitHash: commitHash,
+            buildTime: buildTime,
+          };
+
+          // Write `build-version.json` in the public directory
+          fs.writeFileSync(
+            buildVersionFilePath,
+            JSON.stringify(versionData, null, 2)
+          );
+          console.log("Generated build-version.json at", buildVersionFilePath);
+        });
+      },
+    },
     new Dotenv({
       systemvars: true,
       silent: true,
+    }),
+    new DefinePlugin({
+      version: JSON.stringify(KONVEYOR_ENV.VERSION),
+      version_checker: JSON.stringify(KONVEYOR_ENV.VERSION_CHECKER),
     }),
     new CopyPlugin({
       patterns: [
@@ -164,6 +224,10 @@ const config: Configuration = {
         {
           from: pathTo("../public/templates"),
           to: "./templates/",
+        },
+        {
+          from: path.resolve(__dirname, "../public/build-version.json"),
+          to: "./",
         },
         {
           from: manifestPath,
