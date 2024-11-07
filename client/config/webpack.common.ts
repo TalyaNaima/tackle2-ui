@@ -1,11 +1,10 @@
 import path from "path";
-import { Configuration, DefinePlugin } from "webpack";
+import { Compiler, Configuration, DefinePlugin } from "webpack";
 import CopyPlugin from "copy-webpack-plugin";
 import Dotenv from "dotenv-webpack";
 import { TsconfigPathsPlugin } from "tsconfig-paths-webpack-plugin";
 import MonacoWebpackPlugin from "monaco-editor-webpack-plugin";
 import fs from "fs";
-import { version } from "../package.json";
 
 import { brandingAssetPath, KONVEYOR_ENV } from "@konveyor-ui/common";
 import { LANGUAGES_BY_FILE_EXTENSION } from "./monacoConstants";
@@ -34,7 +33,7 @@ const getGitCommitHash = (): string => {
   }
 };
 
-const getCurrentTimestamp = (): string => new Date().toISOString();
+const getCurrentTimestamp = (): string => new Date().getDate.toString();
 
 const config: Configuration = {
   entry: {
@@ -172,38 +171,25 @@ const config: Configuration = {
   },
 
   plugins: [
-    // {
-    //   apply: (compiler: any) => {
-    //     compiler.hooks.done.tap('GenerateBuildVersionFile', () => {
-    //       const versionData = {
-    //         version: version || '1.0.0',
-    //         buildTime: new Date().toISOString(),
-    //       };
-
-    //       // Write `build-version.json` in the public directory
-    //       fs.writeFileSync(buildVersionFilePath, JSON.stringify(versionData, null, 2));
-    //       console.log('Generated build-version.json at', buildVersionFilePath);
-    //     });
-    //   },
-    // },
     {
-      apply: (compiler: any) => {
+      apply: (compiler: Compiler) => {
         compiler.hooks.done.tap("GenerateBuildVersionFile", () => {
-          const commitHash = getGitCommitHash(); // Get commit hash from git or fallback
-          const buildTime = getCurrentTimestamp();
-
-          const versionData = {
-            version: version || "1.0.0",
-            commitHash: commitHash,
-            buildTime: buildTime,
+          const newVersionData = {
+            version: process.env.VERSION || "99.0.0",
+            commitHash: getGitCommitHash() || "unknown",
+            buildTime: new Date().toISOString(),
           };
 
           // Write `build-version.json` in the public directory
-          fs.writeFileSync(
-            buildVersionFilePath,
-            JSON.stringify(versionData, null, 2)
-          );
-          console.log("Generated build-version.json at", buildVersionFilePath);
+          if (!fs.existsSync(buildVersionFilePath)) {
+            console.log(
+              `Creating new build-version.json file at ${buildVersionFilePath}`
+            );
+            fs.writeFileSync(
+              buildVersionFilePath,
+              JSON.stringify(newVersionData, null, 2)
+            );
+          }
         });
       },
     },

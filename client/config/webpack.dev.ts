@@ -1,6 +1,9 @@
 import path from "path";
 import { mergeWithRules } from "webpack-merge";
-import { type Configuration as WebpackConfiguration } from "webpack";
+import {
+  DefinePlugin,
+  type Configuration as WebpackConfiguration,
+} from "webpack";
 import type { Configuration as DevServerConfiguration } from "webpack-dev-server";
 import CopyPlugin from "copy-webpack-plugin";
 import HtmlWebpackPlugin from "html-webpack-plugin";
@@ -86,9 +89,9 @@ const config: Configuration = mergeWithRules({
         mode: "readonly",
       },
     }),
-    // new DefinePlugin({
-    //   'process.env.VERSION': JSON.stringify(process.env.VERSION)||"2.0.0-dev"
-    //     }),
+    new DefinePlugin({
+      "process.env.VERSION": JSON.stringify(process.env.VERSION) || "2.0.0-dev",
+    }),
     new CopyPlugin({
       patterns: [
         {
@@ -120,9 +123,9 @@ const config: Configuration = mergeWithRules({
     }),
   ],
 
-  watchOptions: {
-    // ignore watching everything except @konveyor-ui packages
-    ignored: /node_modules\/(?!@konveyor-ui\/)/,
-  },
+  // watchOptions: {
+  //   // ignore watching everything except @konveyor-ui packages
+  //   ignored: /node_modules\/(?!@konveyor-ui\/)/,
+  // },
 } as Configuration);
 export default config;

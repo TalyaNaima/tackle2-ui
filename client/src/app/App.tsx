@@ -1,6 +1,5 @@
 import React from "react";
 import { BrowserRouter } from "react-router-dom";
-
 import { AppRoutes } from "./Routes";
 import { DefaultLayout } from "./layout";
 import { NotificationsProvider } from "./components/NotificationsContext";
@@ -16,7 +15,10 @@ const App: React.FC = () => {
         <TaskManagerProvider>
           <DefaultLayout>
             <AppRoutes />
+            {/* {ENV.VERSION_CHECKER=="true" 
+             && */}
             <VersionChecker />
+            {/* } */}
           </DefaultLayout>
         </TaskManagerProvider>
       </NotificationsProvider>

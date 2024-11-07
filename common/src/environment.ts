@@ -43,7 +43,7 @@ export type KonveyorEnvType = {
   /** Location of branding files (relative paths computed from the project source root) */
   BRANDING?: string;
 
-  /**  */
+  /** indicates when a new version has been released */
   VERSION_CHECKER?: "true" | "false";
 };
 

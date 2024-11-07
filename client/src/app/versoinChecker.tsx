@@ -6,23 +6,23 @@ import {
   FlexItem,
 } from "@patternfly/react-core";
 import React, { useEffect, useState } from "react";
+import ENV from "./env";
 
 interface VersionMetadata {
   version: string;
-  commitHash: string;
+  commit_hash: string;
   buildTime: string;
 }
 
-const VersionCheck: React.FC = () => {
+const VersionChecker: React.FC = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [oldVersion, setOldVersion] = useState<string | null>(
     localStorage.getItem("appVersion")
   );
   const [newVersion, setNewVersion] = useState<string | null>(null);
-  const [commitHash, setCommitHash] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const VERSION = process.env.VERSION || "1.0.0";
+  const VERSION = ENV.VERSION || "99.0.0"; // The version from the environment variable
 
   // Fetch the version from the build-version.json file
   const fetchVersionFromFile = async () => {
@@ -41,7 +41,6 @@ const VersionCheck: React.FC = () => {
     const fileVersion = await fetchVersionFromFile();
     if (fileVersion && fileVersion !== VERSION && fileVersion !== oldVersion) {
       setNewVersion(fileVersion);
-      setCommitHash(fileVersion);
       setShowPopup(true);
       localStorage.setItem("appVersion", fileVersion); // Update the stored version
     }
@@ -63,31 +62,44 @@ const VersionCheck: React.FC = () => {
   return (
     <>
       {showPopup && (
-        <Flex
-          justifyContent={{ default: "justifyContentCenter" }}
-          alignItems={{ default: "alignItemsCenter" }}
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent background
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000,
+          }}
         >
-          <FlexItem>
-            <Alert
-              variant="info"
-              title={`A new version (${newVersion}) of the UI is available!`}
-              actionClose={
-                <AlertActionCloseButton onClose={handleClosePopup} />
-              }
-              isInline
-            >
-              <p>Old version: {oldVersion}</p>
-              <p>Commit Hash: {commitHash}</p>
-              <p>Build Time: {}</p>
-              <Button variant="primary" onClick={handleReload}>
-                Reload App
-              </Button>
-            </Alert>
-          </FlexItem>
-        </Flex>
+          <Flex
+            justifyContent={{ default: "justifyContentCenter" }}
+            alignItems={{ default: "alignItemsCenter" }}
+          >
+            <FlexItem>
+              <Alert
+                variant="info"
+                title={`A new version (${newVersion}) of the UI is available!`}
+                actionClose={
+                  <AlertActionCloseButton onClose={handleClosePopup} />
+                }
+                isInline
+              >
+                <p>Old version: {oldVersion}</p>
+                <Button variant="primary" onClick={handleReload}>
+                  Reload App
+                </Button>
+              </Alert>
+            </FlexItem>
+          </Flex>
+        </div>
       )}
     </>
   );
 };
 
-export default VersionCheck;
+export default VersionChecker;
